@@ -1,7 +1,18 @@
 .PHONY: test
-test:
+test: lint unit-test
+
+.PHONY: lint
+lint:
 	-shellcheck realpath.sh
 	-checkbashisms realpath.sh
-	"$(SHELL)" t/test_resolve_symlinks
-	"$(SHELL)" t/test_canonicalize_path
-	"$(SHELL)" t/test_realpath_integration
+
+.PHONY: unit-test
+unit-test: t/*
+
+t/%: force
+	bash "$@"
+	dash "$@"
+
+.PHONY: force
+force: ;
+
