@@ -5,11 +5,11 @@
 setUp() {
     _test_previousdir=$PWD
     _test_workingdir=$(mktemp -d -t sh-realpath.XXXXXX)
-    cd -- "$_test_workingdir"
+    cd -P -- "$_test_workingdir"
 }
 
 tearDown() {
-    cd "$_test_previousdir"
+    cd -- "$_test_previousdir"
     rm -rf -- "$_test_workingdir"
 }
 
