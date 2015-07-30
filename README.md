@@ -34,17 +34,10 @@ Function                          | Description
 <pre>resolve_symlinks PATH</pre>  | If `PATH` is a symlink, follow it as many times as possible; output the path of the first non-symlink found
 <pre>canonicalize_path PATH</pre> | Output absolute path that `PATH` refers to, resolving any relative directories (`.`, `..`) in `PATH` and any symlinks in `PATH`'s ancestor directories
 
-## readlink(1) Portability
+### readlink Emulation
 
-**sh-realpath** has a hard dependency on the `readlink` command.
-
-It should be noted that `readlink(1)` is not included in the [POSIX
-Standard](https://shellhaters.heroku.com/posix).  However, it is
-included in GNU coreutils, FreeBSD, OS-X, and probably elsewhere, so it is
-reasonably portable.
-
-If for some reason you need to support systems that do not have the `readlink`
-command installed, one workaround is to define a shell function called `readlink`
-that wraps the output of `ls -l`.  For implementation hints, see [this
-post](http://unix.stackexchange.com/a/76517/49971) by Gilles.  If there is
-demand for it, I can include a workaround in **sh-realpath**.
+`realpath.sh` includes optional readlink emulation.  It exposes a `readlnk`
+function that calls the system `readlink(1)` if it exists.  Otherwise it uses
+`stat(1)` to emulate the same functionality.  In contrast to the functions in
+the previous section, you may pass `--` as the first argument, since you may be
+calling the system `readlink(1)`.

@@ -67,3 +67,45 @@ _canonicalize_file_path() {
     file=$(basename -- "$1")
     (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
 }
+
+# Optionally, you may also want to include:
+
+### readlink emulation ###
+
+readlink() {
+    if _has_command readlink; then
+        _system_readlink "$@"
+    else
+        _emulated_readlink "$@"
+    fi
+}
+
+_has_command() {
+    hash -- "$1" 2>/dev/null
+}
+
+_system_readlink() {
+    command readlink "$@"
+}
+
+_emulated_readlink() {
+    if [ "$1" = -- ]; then
+        shift
+    fi
+
+    _gnu_stat_readlink "$@" || _bsd_stat_readlink "$@"
+}
+
+_gnu_stat_readlink() {
+    local output
+    output=$(stat -c %N -- "$1" 2>/dev/null) &&
+
+    printf '%s\n' "$output" |
+        sed "s/^‘[^’]*’ -> ‘\(.*\)’/\1/
+             s/^'[^']*' -> '\(.*\)'/\1/"
+    # FIXME: handle newlines
+}
+
+_bsd_stat_readlink() {
+    stat -f %Y -- "$1" 2>/dev/null
+}
