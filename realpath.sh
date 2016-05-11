@@ -93,7 +93,7 @@ _emulated_readlink() {
         shift
     fi
 
-    _gnu_stat_readlink "$@" || _bsd_stat_readlink "$@"
+    _posix_ls_readlink "$@" || _gnu_stat_readlink "$@" || _bsd_stat_readlink "$@"
 }
 
 _gnu_stat_readlink() {
@@ -108,4 +108,8 @@ _gnu_stat_readlink() {
 
 _bsd_stat_readlink() {
     stat -f %Y -- "$1" 2>/dev/null
+}
+
+_posix_ls_readlink() {
+    LC_TIME=POSIX ls -l -- "$1" | sed -e 's/^.\{11\}\ *[0-9]\{1,\}\ *[a-zA-Z\._@\$-]\{1,\}\ *[a-zA-Z\._@\$-]\{1,\}\ *[0-9]\{1,\}\ *[^ ]*\ *[0-9]\{1,2\}\ *[^\ ]*\ \(.*\)/\1/g' -e 's/.* -> //g' 2>/dev/null
 }
