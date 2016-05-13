@@ -111,5 +111,7 @@ _bsd_stat_readlink() {
 }
 
 _posix_ls_readlink() {
-    LC_TIME=POSIX ls -l -- "$1" 2>/dev/null | sed -e 's/^.\{11\}\ *[0-9]\{1,\}\ *[a-zA-Z\._@\$-]\{1,\}\ *[a-zA-Z\._@\$-]\{1,\}\ *[0-9]\{1,\}\ *[^ ]*\ *[0-9]\{1,2\}\ *[^\ ]*\ \(.*\)/\1/' -e 's/.* -> //g' 2>/dev/null
+    name=$1
+    escaped_name=$(printf "%s" "$name" | sed -e 's/\\/\\\\/g' -e 's/\[/\\[/g' -e 's/\*/\\*/g' -e 's/\^/\\^/g')
+    LC_TIME=POSIX ls -l -- "$name" 2>/dev/null | sed -e 's/^.\{11\}\ *[0-9]\{1,\}\ *[a-zA-Z\._@\$-]\{1,\}\ *[a-zA-Z\._@\$-]\{1,\}\ *[0-9]\{1,\}\ *[^ ]*\ *[0-9]\{1,2\}\ *[^\ ]*\ \(.*\)/\1/' -e "s/$escaped_name -> //" 2>/dev/null
 }
