@@ -36,7 +36,7 @@ Function                          | Description
 
 ### readlink Emulation
 
-`realpath.sh` includes optional readlink emulation.  It exposes a `readlnk`
+`realpath.sh` includes optional readlink emulation.  It exposes a `readlink`
 function that calls the system `readlink(1)` if it exists.  Otherwise it uses
 `stat(1)` to emulate the same functionality.  In contrast to the functions in
 the previous section, you may pass `--` as the first argument, since you may be
