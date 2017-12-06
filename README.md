@@ -28,11 +28,11 @@ Or we can get tricky:
 
 Note: unlike `realpath(1)`, these functions take no options; **do not** use `--` to escape any arguments
 
-Function                          | Description
-----------------------------------|--------------
-<pre>realpath PATH</pre>          | Resolve all symlinks to `PATH`, then output the canonicalized result
-<pre>resolve_symlinks PATH</pre>  | If `PATH` is a symlink, follow it as many times as possible; output the path of the first non-symlink found
-<pre>canonicalize_path PATH</pre> | Output absolute path that `PATH` refers to, resolving any relative directories (`.`, `..`) in `PATH` and any symlinks in `PATH`'s ancestor directories
+| Function                          | Description
+| --------------------------------- | -------------
+| <pre>realpath PATH</pre>          | Resolve all symlinks to `PATH`, then output the canonicalized result
+| <pre>resolve_symlinks PATH</pre>  | If `PATH` is a symlink, follow it as many times as possible; output the path of the first non-symlink found
+| <pre>canonicalize_path PATH</pre> | Output absolute path that `PATH` refers to, resolving any relative directories (`.`, `..`) in `PATH` and any symlinks in `PATH`'s ancestor directories
 
 ### readlink Emulation
 
