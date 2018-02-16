@@ -1,0 +1,360 @@
+#!/bin/sh
+
+setUp() {
+	. ./realpath.sh
+
+    _has_command() {
+        return 1
+    }
+
+    current_path=$(pwd)
+    mkdir _posix_ls_readlink_test_directory
+}
+
+tearDown() {
+    cd $current_path
+    rm -rf _posix_ls_readlink_test_directory
+}
+
+it_calls_system_readlink_when_has_command_readlink_is_true() {
+    _has_command() {
+        test "$1" = readlink
+    }
+
+    local readlink_arg1 readlink_arg2
+    _system_readlink() {
+        readlink_arg1="$1"
+        readlink_arg2="$2"
+    }
+
+    readlink -- some/path
+
+    assertEquals -- "$readlink_arg1"
+    assertEquals some/path "$readlink_arg2"
+}
+
+it_calls__posix_ls_readlink_when_has_command_readlink_is_false() {
+    local called
+    _posix_ls_readlink() {
+        called=1
+    }
+
+    readlink -- some/path
+
+    assertNotNull "_posix_ls_readlink called" "$called"
+}
+
+it_passes_actual_arg_to__posix_ls_readlink() {
+    local arg
+    _posix_ls_readlink() {
+        arg="$1"
+    }
+
+    readlink -- some/path
+
+    assertEquals some/path "$arg"
+}
+
+it_passes_first_arg_to__posix_ls_readlink_when_no_dashes() {
+    local arg
+    _posix_ls_readlink() {
+        arg="$1"
+    }
+
+    readlink some/path
+
+    assertEquals some/path "$arg"
+}
+
+it_doesnt_call_stat_readlink_when__posix_readlink_returns_true() {
+    _posix_ls_readlink() {
+        return 0
+    }
+
+    local called
+    _bsd_stat_readlink() {
+        called=1
+    }
+
+    _gnu_stat_readlink() {
+        called=1
+    }
+
+    readlink -- some/path
+
+    assertNull "_bsd_stat_readlink not called" "$called"
+}
+
+it_ok_normal_symbolic_link() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target_file
+    ln -s target_file file_symbolic_link
+
+    output=$(readlink file_symbolic_link)
+
+    assertEquals "target_file" $output
+
+    mkdir target_dir
+    ln -s target_dir dir_symbolic_link
+
+    output=$(readlink dir_symbolic_link)
+
+    assertEquals "target_dir" $output
+}
+
+it_ok_normal_symbolic_link_to_directory_with_trailing_slash() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    mkdir target
+    ln -s target/ symbolic_link
+
+    output=$(readlink symbolic_link)
+
+    assertEquals "target/" $output
+}
+
+it_ok_symbolic_link_name_has_space() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target "symbolic link"
+
+    output=$(readlink "symbolic link")
+
+    assertEquals "target" $output
+}
+
+it_ok_symbolic_link_name_first_character_is_space() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target " symbolic link"
+
+    output=$(readlink " symbolic link")
+
+    assertEquals "target" $output
+}
+
+it_ok_symbolic_link_name_last_character_is_space() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target " symbolic link "
+
+    output=$(readlink " symbolic link ")
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_BRE_metachar_dot_asterisk() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target ' symbolic link .*'
+
+    output=$(readlink ' symbolic link .*')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_BRE_metachar_anchor() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target ' symbolic ^link '
+
+    output=$(readlink ' symbolic ^link ')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_BRE_metachar_anchor_only() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target '^'
+
+    output=$(readlink '^')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_BRE_metachar_dollar() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target 'symbolic $'
+
+    output=$(readlink 'symbolic $')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_BRE_metachar_dollar_only() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s target '$'
+
+    output=$(readlink '$')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_start_with_hypen() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s -- target '-n symbolic'
+
+    output=$(readlink '-n symbolic')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_start_with_hypen() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s -- target '-n symbolic'
+
+    output=$(readlink '-n symbolic')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_bracket() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s -- target '-n symbolic [a-z]'
+
+    output=$(readlink '-n symbolic [a-z]')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_bracket() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s -- target '-n symbolic [a-z]'
+
+    output=$(readlink '-n symbolic [a-z]')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_back_slash() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s -- target '-n \symbolic [a-z]'
+
+    output=$(readlink '-n \symbolic [a-z]')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_symbolic_link_name_with_posix_ls_symbolic_link_mark() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch target
+    ln -s -- target '-n \symbolic [a-z] -> link'
+
+    output=$(readlink '-n \symbolic [a-z] -> link')
+
+    assertEquals "target" "$output"
+}
+
+it_ok_target_name_with_posix_ls_symbolic_link_mark() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch 'target -> file -> name'
+    ln -s -- 'target -> file -> name' '-n \symbolic [a-z] -> link'
+
+    output=$(readlink '-n \symbolic [a-z] -> link')
+
+    assertEquals 'target -> file -> name' "$output"
+}
+
+it_ok_target_name_start_with_space() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch ' target -> file -> name'
+    ln -s -- ' target -> file -> name' '-n \symbolic [a-z] -> link'
+
+    output=$(readlink '-n \symbolic [a-z] -> link')
+
+    assertEquals ' target -> file -> name' "$output"
+}
+
+it_ok_target_name_with_trailing_space() {
+    local output
+
+    cd _posix_ls_readlink_test_directory
+
+    touch ' target -> file -> name '
+    ln -s -- ' target -> file -> name ' '-n \symbolic [a-z] -> link'
+
+    output=$(readlink '-n \symbolic [a-z] -> link')
+
+    assertEquals ' target -> file -> name ' "$output"
+}
+
+##### Test Harness #####
+
+# suite() -- find and register tests to be run
+#   Derived from Gary Bernhardt's screencast #68
+#   (https://www.destroyallsoftware.com/screencasts/catalog/test-driving-shell-scripts)
+suite() {
+    local name tests
+    tests=$(grep ^it_ "$0" | cut -d '(' -f 1)
+    for name in $tests; do
+        suite_addTest "$name"
+    done
+}
+
+if hash shunit2 2>/dev/null; then
+    . shunit2
+else
+    echo 'Error: shunit2(1) could not be located. Please install it on your $PATH.' >&2
+    exit 1
+fi
