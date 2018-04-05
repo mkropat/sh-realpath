@@ -68,6 +68,37 @@ _canonicalize_file_path() {
     (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
 }
 
+canonicalize_missing() {
+    local path dir
+
+    path=$1
+
+    if [ $(printf "%s" $path | cut -c 1) != "/" ]; then
+        path=$(printf "%s/%s" $(pwd) $path)
+    fi
+
+    path=$(printf "%s" $path | sed -e 's%^\./%%g' -e 's%/\./%/%g' -e ':begin' -e 's%\([^/]*\)/\.\./%%' -e 'tbegin')
+
+    {
+        old_IFS=$IFS
+        IFS=/
+        set $path
+        IFS=$old_IFS
+
+        dir='/'
+        for i in $@; do
+            if [ "X$i" = "X" ]; then
+                continue
+            fi
+
+            cd $dir
+            dir=$(printf "%s/%s" $dir $(resolve_symlinks $i))
+        done
+    }
+
+    printf "%s\n" $dir | sed -e 's%//%/%g' -e 's%^\./%%g' -e 's%/\./%/%g' -e ':begin' -e 's%\([^/]*\)/\.\./%%' -e 'tbegin'
+}
+
 # Optionally, you may also want to include:
 
 ### readlink emulation ###
